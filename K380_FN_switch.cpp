@@ -586,6 +586,14 @@ static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         }
         break;
 
+    // The window has to be top-level to receive TaskbarCreated and the power
+    // broadcasts, which also exposes it to anything that blanket-sends
+    // WM_CLOSE to every top-level window. DefWindowProc would destroy it and
+    // silently take the tray icon with it, so swallow it: only the Exit menu
+    // item (or --exit) shuts the application down.
+    case WM_CLOSE:
+        return 0;
+
     case WM_DESTROY:
         KillTimer(hwnd, TIMER_APPLY);
         if (g_hotkeyOn) UnregisterHotKey(hwnd, HOTKEY_ID);
