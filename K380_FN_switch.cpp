@@ -124,10 +124,8 @@ static BOOL PidMatches(USHORT pid) {
     return FALSE;
 }
 
-// Case-insensitive substring test used to skip device-change events that are
-// not about a Logitech device.
-static BOOL ContainsLogitechVid(const WCHAR *path) {
-    static const WCHAR needle[] = L"vid_046d";
+// Case-insensitive substring test; `needle` must already be lower case.
+static BOOL PathContains(const WCHAR *path, const WCHAR *needle) {
     for (; *path; ++path) {
         int i = 0;
         while (needle[i]) {
@@ -139,6 +137,13 @@ static BOOL ContainsLogitechVid(const WCHAR *path) {
         if (!needle[i]) return TRUE;
     }
     return FALSE;
+}
+
+// Used to skip device-change events that are not about a Logitech device.
+// USB spells the vendor "VID_046D", but a Bluetooth-attached K380 arrives as
+// "HID\{00001124-...}_VID&0002046D_PID&B342&Col01", so both forms must match.
+static BOOL ContainsLogitechVid(const WCHAR *path) {
+    return PathContains(path, L"vid_046d") || PathContains(path, L"vid&0002046d");
 }
 
 // ----------------------------------------------------------------- registry
